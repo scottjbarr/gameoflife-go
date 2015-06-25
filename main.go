@@ -11,12 +11,12 @@ import (
 )
 
 type Game struct {
-	Tick int
-	Rows []Row
+	Generation int
+	Rows       []Row
 }
 
-func (g *Game) Get(col int, row int) Cell {
-	return g.Rows[row].Cells[col]
+func (g *Game) Get(col int, row int) *Cell {
+	return &g.Rows[row].Cells[col]
 }
 
 type Row struct {
@@ -28,9 +28,10 @@ type Cell struct {
 	Row       int
 	Value     int
 	NextValue int
+	Color     string
 }
 
-// neighbour offsets
+// offset values tht are used when finding neighbours
 var offsets [8][]int
 
 func init() {
@@ -45,13 +46,14 @@ func init() {
 	offsets[7] = []int{1, 1}
 }
 
+// Draw all Cell structures
 func (game *Game) Draw() {
-	fmt.Println("game.tick : ", game.Tick)
+	fmt.Println("Generation : ", game.Generation)
 
 	for _, r := range game.Rows {
 		for _, c := range r.Cells {
 			if c.Value == 1 {
-				color.Print("@{G} ")
+				color.Print(fmt.Sprintf("%v ", c.Color))
 			} else {
 				color.Print("@c.")
 			}
@@ -60,10 +62,10 @@ func (game *Game) Draw() {
 	}
 }
 
+// Return the number of live neighbours a Cell has
 func (g *Game) NeighbourCount(c *Cell) int {
 	alive := 0
 
-	// check if cell to left is alive
 	for _, offset := range offsets {
 		col := c.Col + offset[0]
 		row := c.Row + offset[1]
@@ -81,16 +83,40 @@ func (g *Game) NeighbourCount(c *Cell) int {
 	return alive
 }
 
+// Returns true if the Cell is currently alive, false otherwise
 func (c *Cell) IsAlive() bool {
 	return c.Value == 1
 }
 
+// Kill the Cell in the next generation
 func (c *Cell) Die() {
 	c.NextValue = 0
 }
 
+// Keep a Cell alive in the next generation
 func (c *Cell) Live() {
 	c.NextValue = 1
+
+	// Use a green block
+	c.Color = "@{G}"
+}
+
+// Bring the Cell back to life in the next generation
+func (c *Cell) Spawn() {
+	c.NextValue = 1
+
+	// Use a white block
+	c.Color = "@{W}"
+}
+
+// Copy next values of the Cell's to the current values.
+func (g *Game) PrepareValues() {
+	for row := 0; row < len(g.Rows); row++ {
+		for col := 0; col < len(g.Rows[0].Cells); col++ {
+			c := g.Get(col, row)
+			c.Value = c.NextValue
+		}
+	}
 }
 
 func NewGame(rowCount int, colCount int) *Game {
@@ -106,7 +132,7 @@ func NewGame(rowCount int, colCount int) *Game {
 
 	game := &Game{Rows: rows}
 
-	// The glider
+	// Hard coding a Glider until I add the loader
 	//
 	//     ..*
 	//     *.*
@@ -126,14 +152,15 @@ func NewGame(rowCount int, colCount int) *Game {
 	return game
 }
 
+// Create a new Cell
 func NewCell(col int, row int) *Cell {
 	return &Cell{Value: 0, Col: col, Row: row}
 }
 
-func Tick(game *Game) {
-	game.Tick += 1
+// Update all Cells
+func (game *Game) Tick() { // game *Game) {
+	game.Generation += 1
 
-	// update all rows
 	for row := 0; row < len(game.Rows); row++ {
 		for col := 0; col < len(game.Rows[0].Cells); col++ {
 
@@ -154,46 +181,41 @@ func Tick(game *Game) {
 				}
 			} else if !c.IsAlive() && n == 3 {
 				// dead cell with 3 neighbours
-				c.Live()
+				c.Spawn()
 			}
 		}
 	}
 
-	// copy new value to value, and reset new value
-	for row := 0; row < len(game.Rows); row++ {
-		for col := 0; col < len(game.Rows[0].Cells); col++ {
-			c := &game.Rows[row].Cells[col]
-			c.Value = c.NextValue
-		}
-	}
+	game.PrepareValues()
 }
 
+// Clear the terminal.
 func clearScreen() {
 	c := exec.Command("clear")
 	c.Stdout = os.Stdout
 	c.Run()
 }
 
-func sleep(sleepTime int) {
-	time.Sleep(time.Millisecond * 200)
+// Sleep for the given number of seconds.
+func sleep(seconds int) {
+	time.Sleep(time.Millisecond * time.Duration(seconds))
 }
 
 func main() {
-	iterations := flag.Int("iterations", 10, "Iterations")
-	rowCount := flag.Int("rows", 4, "Grid rows")
-	colCount := flag.Int("cols", 4, "Grid columns")
+	colCount := flag.Int("cols", 40, "Grid columns")
+	rowCount := flag.Int("rows", 20, "Grid rows")
+	iterations := flag.Int("iterations", 70, "Iterations")
 	sleepTime := flag.Int("sleep", 100, "Pause between frames (ms)")
 
 	flag.Parse()
 
-	// load data file, pass data file to NewGame
 	game := NewGame(*rowCount, *colCount)
 
 	for i := 0; i < *iterations; i++ {
 		clearScreen()
 		game.Draw()
 		sleep(*sleepTime)
-		Tick(game)
+		game.Tick()
 		fmt.Printf("\n")
 	}
 }

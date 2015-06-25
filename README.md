@@ -15,6 +15,20 @@ See https://en.wikipedia.org/wiki/Game_of_Life
 1. Any dead cell with exactly three live neighbours becomes a live cell, as if
    by reproduction.
 
+## Install
+
+    go get github.com/scottjbarr/gameoflife-go
+
+## Run
+
+Pass the `-h` switch to see `help`
+
+    go run src/github.com/scottjbarr/gameoflife-go/main.go
+
+## Test
+
+    go test github.com/scottjbarr/gameoflife-go
+
 ## License
 
 The MIT License (MIT)

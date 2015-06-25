@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "fmt"
 	"reflect"
 	"testing"
 )
@@ -13,57 +12,57 @@ func expect(t *testing.T, a interface{}, b interface{}) {
 	}
 }
 
-// ***.
-// *...
-// .*..
-// ....
+// Create a Game that has a Glider in it.
+//
+//     ..*
+//     *.*
+//     .**
+//
 func buildGlider() *Game {
-	g := NewGame(3, 3)
-	// rows := g.Rows
+	g := NewGame(4, 4)
 
-	// row 0
-	g.Rows[0].Cells[0].Value = 1
-	g.Rows[0].Cells[1].Value = 1
-	g.Rows[0].Cells[2].Value = 1
+	g.Get(2, 0).Live()
 
-	// row 1
-	g.Rows[1].Cells[0].Value = 1
+	g.Get(0, 1).Live()
+	g.Get(2, 1).Live()
 
-	// row 2
-	g.Rows[2].Cells[1].Value = 1
+	g.Get(1, 2).Live()
+	g.Get(2, 2).Live()
+
+	g.PrepareValues()
 
 	return g
 }
 
 func TestIsAlive(t *testing.T) {
 	g := buildGlider()
-
 	c := g.Get(2, 0)
 	expect(t, true, c.IsAlive())
 }
 
 func TestIsAliveFalse(t *testing.T) {
 	g := buildGlider()
-
 	c := g.Get(0, 2)
+
 	expect(t, false, c.IsAlive())
 }
 
 func TestGameGet(t *testing.T) {
 	g := buildGlider()
-	expect(t, g.Rows[2].Cells[0], g.Get(0, 2))
+
+	expect(t, g.Rows[2].Cells[0], *g.Get(0, 2))
 }
 
 func TestNeighbourCount1(t *testing.T) {
 	g := buildGlider()
-	g.Draw()
 	c := g.Get(0, 2)
-	expect(t, 2, g.NeighbourCount(&c))
+
+	expect(t, 2, g.NeighbourCount(c))
 }
 
 func TestNeighbourCount2(t *testing.T) {
 	g := buildGlider()
-
 	c := g.Get(2, 0)
-	expect(t, 1, g.NeighbourCount(&c))
+
+	expect(t, 1, g.NeighbourCount(c))
 }
