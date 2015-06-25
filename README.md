@@ -4,6 +4,8 @@ A Go version of the Game of Life.
 
 See https://en.wikipedia.org/wiki/Game_of_Life
 
+<img src="docs/gameoflife-screenshot.png"/>
+
 ## Rules
 
 1. Any live cell with fewer than two live neighbours dies, as if caused by
