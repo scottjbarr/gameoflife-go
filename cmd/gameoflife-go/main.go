@@ -7,12 +7,14 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/scottjbarr/gameoflife-go"
 	"github.com/wsxiaoys/terminal/color"
 )
 
 type Game struct {
 	Generation int
 	Rows       []Row
+	SleepTime  int
 }
 
 func (g *Game) Get(col int, row int) *Cell {
@@ -48,7 +50,9 @@ func init() {
 
 // Draw all Cell structures
 func (game *Game) Draw() {
-	fmt.Println("Generation : ", game.Generation)
+	clearScreen()
+
+	fmt.Printf("Generation : %v\n", game.Generation)
 
 	for _, r := range game.Rows {
 		for _, c := range r.Cells {
@@ -60,6 +64,8 @@ func (game *Game) Draw() {
 		}
 		fmt.Printf("\n")
 	}
+
+	game.Sleep()
 }
 
 // Return the number of live neighbours a Cell has
@@ -81,6 +87,10 @@ func (g *Game) NeighbourCount(c *Cell) int {
 	}
 
 	return alive
+}
+
+func (g *Game) Sleep() {
+	time.Sleep(time.Millisecond * time.Duration(g.SleepTime))
 }
 
 // Returns true if the Cell is currently alive, false otherwise
@@ -119,35 +129,50 @@ func (g *Game) PrepareValues() {
 	}
 }
 
-func NewGame(rowCount int, colCount int) *Game {
+func NewGame(filename string, sleepTime int) *Game {
+
+	// load the game data
+	data, err := loader.ReadLifeData(filename)
+
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		os.Exit(1)
+	}
+
+	rowCount := len(data)
+
+	// colCount is the maximum string length of a row of data
+	maxLength := 0
+
+	for _, line := range data {
+		if len(line) > maxLength {
+			maxLength = len(line)
+		}
+	}
+
+	colCount := maxLength
+
 	rows := make([]Row, rowCount)
 
 	for row := 0; row < len(rows); row++ {
 		rows[row].Cells = make([]Cell, colCount)
 
 		for col := 0; col < colCount; col++ {
-			rows[row].Cells[col] = *NewCell(col, row)
+			c := *NewCell(col, row)
+
+			if row < len(data) && col < len(data[row]) {
+				if string(data[row][col]) == "*" {
+					// this is a live cell
+					c.Live()
+					c.Value = 1
+				}
+			}
+
+			rows[row].Cells[col] = c
 		}
 	}
 
-	game := &Game{Rows: rows}
-
-	// Hard coding a Glider until I add the loader
-	//
-	//     ..*
-	//     *.*
-	//     .**
-
-	// row 0
-	rows[0].Cells[2].Value = 1
-
-	// row 1
-	rows[1].Cells[0].Value = 1
-	rows[1].Cells[2].Value = 1
-
-	// row 2
-	rows[2].Cells[1].Value = 1
-	rows[2].Cells[2].Value = 1
+	game := &Game{Rows: rows, SleepTime: sleepTime}
 
 	return game
 }
@@ -158,7 +183,7 @@ func NewCell(col int, row int) *Cell {
 }
 
 // Update all Cells
-func (game *Game) Tick() { // game *Game) {
+func (game *Game) Tick() {
 	game.Generation += 1
 
 	for row := 0; row < len(game.Rows); row++ {
@@ -171,7 +196,7 @@ func (game *Game) Tick() { // game *Game) {
 			if c.IsAlive() {
 				if n < 2 {
 					// live cell with less than 2 live neighbour
-					c.Die() // NextValue = 0
+					c.Die()
 				} else if n == 2 || n == 3 {
 					// live cell with 2 or 3 live neighbours
 					c.Live()
@@ -189,33 +214,24 @@ func (game *Game) Tick() { // game *Game) {
 	game.PrepareValues()
 }
 
-// Clear the terminal.
+// Clear the terminal
 func clearScreen() {
 	c := exec.Command("clear")
 	c.Stdout = os.Stdout
 	c.Run()
 }
 
-// Sleep for the given number of seconds.
-func sleep(seconds int) {
-	time.Sleep(time.Millisecond * time.Duration(seconds))
-}
-
 func main() {
-	colCount := flag.Int("cols", 40, "Grid columns")
-	rowCount := flag.Int("rows", 20, "Grid rows")
-	iterations := flag.Int("iterations", 70, "Iterations")
+	iterations := flag.Int("iterations", 100, "Iterations")
 	sleepTime := flag.Int("sleep", 100, "Pause between frames (ms)")
+	filename := flag.String("file", "", "Name of life data file")
 
 	flag.Parse()
 
-	game := NewGame(*rowCount, *colCount)
+	game := NewGame(*filename, *sleepTime)
 
 	for i := 0; i < *iterations; i++ {
-		clearScreen()
 		game.Draw()
-		sleep(*sleepTime)
 		game.Tick()
-		fmt.Printf("\n")
 	}
 }

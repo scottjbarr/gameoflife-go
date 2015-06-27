@@ -19,7 +19,7 @@ func expect(t *testing.T, a interface{}, b interface{}) {
 //     .**
 //
 func buildGlider() *Game {
-	g := NewGame(4, 4)
+	g := NewGame(4, 4, 50)
 
 	g.Get(2, 0).Live()
 
