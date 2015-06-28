@@ -2,7 +2,7 @@
 //
 // This loader is a non-strict Life 1.05 parser. See docs/glider.L for an
 // example of a loadable file.
-package loader
+package main
 
 import (
 	"bufio"

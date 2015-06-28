@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/scottjbarr/gameoflife-go"
 	"github.com/wsxiaoys/terminal/color"
 )
 
@@ -132,7 +131,7 @@ func (g *Game) PrepareValues() {
 func NewGame(filename string, sleepTime int) *Game {
 
 	// load the game data
-	data, err := loader.ReadLifeData(filename)
+	data, err := ReadLifeData(filename)
 
 	if err != nil {
 		fmt.Printf("%v\n", err)
