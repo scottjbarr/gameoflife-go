@@ -3,6 +3,8 @@ package main
 import (
 	"reflect"
 	"testing"
+
+	"github.com/scottjbarr/gameoflife-go/cmd/gameoflife-go"
 )
 
 // Test helper. Thanks again, @keighl
@@ -12,14 +14,9 @@ func expect(t *testing.T, a interface{}, b interface{}) {
 	}
 }
 
-// Create a Game that has a Glider in it.
-//
-//     ..*
-//     *.*
-//     .**
-//
-func buildGlider() *Game {
-	g := NewGame(4, 4, 50)
+// Creates a Game that has a Glider in it.
+func buildGlider() *main.Game {
+	g := main.NewGame("../../docs/glider.L", 50)
 
 	g.Get(2, 0).Live()
 
