@@ -25,11 +25,16 @@ See https://en.wikipedia.org/wiki/Game_of_Life
 
 Pass the `-h` switch to see `help`
 
-    go run src/github.com/scottjbarr/gameoflife-go/main.go
+    go run main.go loader.go -file ./docs/glider.L
+
 
 ## Test
 
     go test github.com/scottjbarr/gameoflife-go
+
+or from the project directory
+
+    go test
 
 ## License
 
