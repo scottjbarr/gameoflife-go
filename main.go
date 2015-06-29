@@ -135,7 +135,7 @@ func NewGame(filename string, sleepTime int) *Game {
 
 	if err != nil {
 		fmt.Printf("%v\n", err)
-		os.Exit(1)
+		os.Exit(2)
 	}
 
 	rowCount := len(data)
@@ -226,6 +226,11 @@ func main() {
 	filename := flag.String("file", "", "Name of life data file")
 
 	flag.Parse()
+
+	if *filename == "" {
+		fmt.Println("A --file must be given")
+		os.Exit(1)
+	}
 
 	game := NewGame(*filename, *sleepTime)
 
