@@ -228,7 +228,7 @@ func main() {
 	flag.Parse()
 
 	if *filename == "" {
-		fmt.Println("A --file must be given")
+		flag.Usage()
 		os.Exit(1)
 	}
 
